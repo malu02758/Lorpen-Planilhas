@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LORPEN COMÉRCIO DE PEÇAS</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+if (typeof XLSX === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+}
+</script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f7f6;
+    color: #333;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+/* CABEÇALHO */
+
+.header-container {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 12px 20px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 100;
+    width: 100%;
+}
+
+h2 {
+    margin: 0 0 8px;
+    color: #004080;
+    line-height: 1.2;
+}
+
+.title-main {
+    display: block;
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+    font-weight: bold;
+}
+
+.title-sub {
+    display: block;
+    font-size: clamp(0.75rem, 1vw, 0.9rem);
+    letter-spacing: 3px;
+    margin-top: 3px;
+    font-weight: 500;
+}
+
+#searchInput {
+    width: 100%;
+    max-width: 800px;
+    padding: 11px 18px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+    outline: none;
+    margin-top: 4px;
+}
+
+#searchInput:focus {
+    border-color: #004080;
+    box-shadow: 0 0 8px rgba(0,64,128,0.25);
+}
+
+#searchInput:disabled {
+    background: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.file-upload {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+#statusBar {
+    display: none;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #555;
+}
+
+#changeFileBtn {
+    margin-left: 12px;
+    padding: 5px 10px;
+    font-size: 12px;
+    background: #eef2f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #004080;
+    font-weight: 600;
+}
+
+#loading {
+    display: none;
+    margin-top: 8px;
+    font-weight: bold;
+    color: #004080;
+}
+
+#error-msg {
+    display: none;
+    margin-top: 8px;
+    color: #d32f2f;
+    font-weight: 500;
+}
+
+/* TABELA */
+
+.table-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    overflow: auto;
+    padding: 0 10px 10px;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 9px 10px;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+th:first-child, td:first-child {
+    border-left: 1px solid #e0e0e0;
+}
+
+/* CABEÇALHO CONGELADO */
+
+th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #004080;
+    color: #fff;
+    font-weight: 600;
+    border-top: 1px solid #003366;
+}
+
+/* PRIMEIRA COLUNA */
+
+.col-a {
+    width: 90px;
+    min-width: 80px;
+    max-width: 100px;
+    padding: 6px 4px;
+    white-space: normal;
+    line-height: 1.2;
+}
+
+/* SEGUNDA COLUNA */
+
+.col-b {
+    width: 75px;
+    min-width: 65px;
+    max-width: 90px;
+    padding: 6px 4px;
+    white-space: normal;
+    line-height: 1.2;
+}
+
+/* COLUNAS DE TEXTO */
+
+.col-texto {
+    text-align: left;
+    white-space: normal;
+    min-width: 140px;
+    overflow-wrap: break-word;
+}
+
+/* DESCRIÇÃO DO PRODUTO */
+
+.col-e {
+    width: 420px;
+    min-width: 320px;
+    max-width: 480px;
+}
+
+td.col-e {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 12px;
+}
+
+/* PREÇOS */
+
+.col-t {
+    min-width: 115px;
+    max-width: 150px;
+    white-space: normal;
+    line-height: 1.3;
+}
+
+/* PESQUISA */
+
+strong.highlight {
+    color: #000;
+    background: #ffeeb2;
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
+/* LINHAS */
+
+tbody tr {
+    cursor: pointer;
+}
+
+tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+tr:hover {
+    background: #eef2f5;
+}
+
+tr.selected-row,
+tr.selected-row:nth-child(even),
+tr.selected-row:hover {
+    background: #d4edda !important;
+}
+
+/* TABLETS */
+
+@media (max-width: 1024px) {
+    .header-container {
+        padding: 12px;
+    }
+
+    .col-e {
+        min-width: 280px;
+        width: 350px;
+    }
+
+    td.col-e {
+        font-size: 15px;
+    }
+}
+
+/* CELULARES */
+
+@media (max-width: 600px) {
+    .header-container {
+        padding: 10px;
+    }
+
+    .title-main {
+        font-size: 17px;
+    }
+
+    .title-sub {
+        font-size: 11px;
+        letter-spacing: 2px;
+    }
+
+    #searchInput {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+
+    .file-upload {
+        font-size: 12px;
+    }
+
+    .table-container {
+        padding: 0 4px 6px;
+    }
+
+    th, td {
+        font-size: 12px;
+        padding: 9px 8px;
+    }
+
+    .col-e {
+        min-width: 260px;
+        width: 280px;
+    }
+
+    td.col-e {
+        font-size: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header-container">
+
+    <h2>
+        <span class="title-main">LORPEN COMÉRCIO DE PEÇAS</span>
+        <span class="title-sub">PREÇOS E PRODUTOS</span>
+    </h2>
+
+    <input
+        type="text"
+        id="searchInput"
+        placeholder="Pesquise por qualquer informação da planilha..."
+        disabled
+    >
+
+    <div class="file-upload" id="uploadContainer">
+        <label for="excelFile">
+            <strong>Passo 1:</strong> Selecione a sua planilha Excel:
+        </label>
+        <input type="file" id="excelFile" accept=".xlsx,.xls,.xlsm,.csv">
+    </div>
+
+    <div id="statusBar">
+        <span id="resultCount"></span>
+        <button type="button" id="changeFileBtn">Trocar planilha</button>
+    </div>
+
+    <div id="loading">
+        Lendo dados da planilha, por favor aguarde...
+    </div>
+
+    <div id="error-msg"></div>
+
+</div>
+
+<div class="table-container">
+
+    <table id="dataTable">
+        <thead>
+            <tr id="tableHeader"></tr>
+        </thead>
+
+        <tbody id="tableBody">
+            <tr>
+                <td style="text-align:center;padding:30px;color:#666;">
+                    Carregue a sua planilha para visualizar os dados.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<script>
+
+/* CONFIGURAÇÕES */
+
+let tableData = [];
+let visibleColumns = [];
+
+const HEADER_ROW = 2;
+const DATA_START_ROW = 4;
+const MAX_ROWS = 10000;
+
+/*
+COLUNAS EXIBIDAS (procuradas pelo NOME na linha 3 da planilha):
+
+Última Atualização, Código, Código Original, Descrição do Produto,
+35%, 40%, 45%, 50%, 55%, 60%, 65%, 70%
+*/
+
+const REQUIRED_COLUMNS = [
+    { label: "Última Atualização", match: h => h.includes("ATUALIZACAO") },
+    { label: "Código",             match: h => h === "CODIGO" || h === "COD" },
+    { label: "Código Original",    match: h => h.includes("CODIGO") && h.includes("ORIGINAL") },
+    { label: "Descrição do Produto", match: h => h.includes("DESCRICAO") },
+    { label: "35%", match: h => h === "35" },
+    { label: "40%", match: h => h === "40" },
+    { label: "45%", match: h => h === "45" },
+    { label: "50%", match: h => h === "50" },
+    { label: "55%", match: h => h === "55" },
+    { label: "60%", match: h => h === "60" },
+    { label: "65%", match: h => h === "65" },
+    { label: "70%", match: h => h === "70" }
+];
+
+const excelFile = document.getElementById('excelFile');
+const searchInput = document.getElementById('searchInput');
+const tableHeader = document.getElementById('tableHeader');
+const tableBody = document.getElementById('tableBody');
+
+/* NORMALIZAÇÃO */
+
+function normalizeHeader(value) {
+    return String(value ?? "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toUpperCase();
+}
+
+function removeAccents(str) {
+    return String(str)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+
+/* SEGURANÇA HTML */
+
+function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+}
+
+/* FORMATAÇÃO DE PORCENTAGENS */
+
+function formatPercentHeader(value) {
+
+    if (value === undefined || value === null || value === "") {
+        return "";
+    }
+
+    let str = String(value).trim();
+
+    if (str.includes("%")) {
+        return str;
+    }
+
+    let num = Number(str.replace(",", "."));
+
+    if (!Number.isFinite(num)) {
+        return str;
+    }
+
+    if (num > 0 && num <= 1) {
+        return Math.round(num * 100) + "%";
+    }
+
+    if (num > 1 && num <= 100) {
+        return Math.round(num) + "%";
+    }
+
+    return str;
+}
+
+/* LETRAS DAS COLUNAS */
+
+function getColumnLetter(index) {
+    let result = "";
+    let n = index + 1;
+
+    while (n > 0) {
+        let remainder = (n - 1) % 26;
+        result = String.fromCharCode(65 + remainder) + result;
+        n = Math.floor((n - 1) / 26);
+    }
+
+    return result;
+}
+
+/* TÍTULOS DA TABELA */
+
+function getHeader(row, col) {
+
+    let value = row[col];
+
+    if (value === undefined || value === null || String(value).trim() === "") {
+        return "Coluna " + getColumnLetter(col);
+    }
+
+    return formatPercentHeader(value);
+}
+
+/* FORMATAÇÃO DOS VALORES */
+
+function formatCellValue(value, colIdx) {
+
+    if (value === undefined || value === null || value === "") {
+        return "";
+    }
+
+    if (typeof value === "number") {
+        return value.toLocaleString('pt-BR');
+    }
+
+    return String(value).trim();
+}
+
+/* DATAS */
+
+function convertDate(value) {
+
+    if (value === undefined || value === null || value === "") {
+        return "";
+    }
+
+    if (typeof value === "number" && value > 20000 && value < 80000) {
+
+        let date = new Date((value - 25569) * 86400 * 1000);
+
+        return date.toLocaleDateString(
+            'pt-BR',
+            { timeZone: 'UTC' }
+        );
+    }
+
+    let str = String(value).trim();
+
+    if (str.length >= 10 && str.includes('-')) {
+        return str.substring(0, 10)
+            .split('-')
+            .reverse()
+            .join('/');
+    }
+
+    return str;
+}
+
+/* DESTAQUE DA PESQUISA */
+
+function highlightText(text, terms) {
+
+    let result = escapeHTML(text);
+
+    if (!terms.length || !text) {
+        return result;
+    }
+
+    let sortedTerms = [...terms].sort(
+        (a, b) => b.length - a.length
+    );
+
+    sortedTerms.forEach(term => {
+
+        let escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        let regex = new RegExp(
+            "(" + escapedTerm + ")",
+            "gi"
+        );
+
+        result = result.replace(
+            regex,
+            '<strong class="highlight">$1</strong>'
+        );
+    });
+
+    return result;
+}
+
+/* TROCAR PLANILHA */
+
+document.getElementById('changeFileBtn')
+.addEventListener('click', function() {
+
+    excelFile.value = "";
+
+    document.getElementById('uploadContainer').style.display = 'block';
+    document.getElementById('statusBar').style.display = 'none';
+
+    searchInput.value = "";
+    searchInput.disabled = true;
+
+    tableData = [];
+    visibleColumns = [];
+
+    tableHeader.innerHTML = "";
+
+    tableBody.innerHTML = `
+        <tr>
+            <td style="text-align:center;padding:30px;">
+                Carregue a sua planilha para visualizar os dados.
+            </td>
+        </tr>
+    `;
+});
+
+/* CARREGAMENTO DO EXCEL */
+
+excelFile.addEventListener('change', function(e) {
+
+    let file = e.target.files[0];
+
+    if (!file) return;
+
+    let loading = document.getElementById('loading');
+    let error = document.getElementById('error-msg');
+
+    loading.style.display = 'block';
+    error.style.display = 'none';
+    searchInput.disabled = true;
+
+    if (typeof XLSX === 'undefined') {
+
+        loading.style.display = 'none';
+
+        error.innerText =
+            "Biblioteca Excel não carregada. Verifique sua internet.";
+
+        error.style.display = 'block';
+
+        return;
+    }
+
+    let reader = new FileReader();
+
+    reader.onload = function(evt) {
+
+        try {
+
+            let data = new Uint8Array(evt.target.result);
+
+            let workbook = XLSX.read(data, {
+                type: 'array',
+                cellDates: false
+            });
+
+            let worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+            let jsonData = XLSX.utils.sheet_to_json(
+                worksheet,
+                {
+                    header: 1,
+                    defval: "",
+                    raw: true
+                }
+            );
+
+            if (!jsonData || jsonData.length === 0) {
+                throw new Error("A planilha está vazia.");
+            }
+
+            if (jsonData.length <= DATA_START_ROW) {
+                throw new Error("Não existem linhas de produtos na planilha.");
+            }
+
+            /* USA A LINHA 3 COMO CABEÇALHO */
+
+            let headerRow = jsonData[HEADER_ROW] || [];
+
+            /* PROCURA AS COLUNAS PELO NOME NO CABEÇALHO */
+
+            visibleColumns = [];
+            let missing = [];
+
+            REQUIRED_COLUMNS.forEach(req => {
+
+                let idx = headerRow.findIndex((cell, i) =>
+                    !visibleColumns.includes(i) &&
+                    req.match(normalizeHeader(formatPercentHeader(cell)))
+                );
+
+                if (idx === -1) {
+                    missing.push(req.label);
+                } else {
+                    visibleColumns.push(idx);
+                }
+            });
+
+            if (missing.length > 0) {
+                throw new Error(
+                    "Não encontrei estas colunas na linha 3 da planilha: " + missing.join(", ")
+                );
+            }
+
+            /* CRIA OS CABEÇALHOS */
+
+            tableHeader.innerHTML = "";
+
+            visibleColumns.forEach((col, displayIndex) => {
+
+                let th = document.createElement('th');
+
+                th.textContent = REQUIRED_COLUMNS[displayIndex].label;
+
+                th.id = "th-" + getColumnLetter(col).toLowerCase();
+
+                if (displayIndex === 0) th.classList.add('col-a');
+                if (displayIndex === 1) th.classList.add('col-b');
+                if (displayIndex === 3) th.classList.add('col-e');
+                if (displayIndex >= 4) th.classList.add('col-t');
+
+                tableHeader.appendChild(th);
+            });
+
+            /* CARREGA OS PRODUTOS */
+
+            tableData = [];
+
+            let maxRows = Math.min(
+                jsonData.length,
+                DATA_START_ROW + MAX_ROWS
+            );
+
+            for (let i = DATA_START_ROW; i < maxRows; i++) {
+
+                let row = jsonData[i] || [];
+
+                let values = {};
+                let searchable = [];
+
+                visibleColumns.forEach((col, displayIndex) => {
+
+                    let value = row[col] ?? "";
+
+                    if (displayIndex === 0) {
+                        value = convertDate(value);
+                    }
+
+                    values[col] = formatCellValue(value, col);
+
+                    if (String(value).trim() !== "") {
+                        searchable.push(String(value).trim());
+                    }
+                });
+
+                if (searchable.length === 0) {
+                    continue;
+                }
+
+                let rawSearch = searchable.join(" ").toLowerCase();
+
+                tableData.push({
+                    values: values,
+                    searchStr: rawSearch + " " + removeAccents(rawSearch)
+                });
+            }
+
+            if (tableData.length === 0) {
+                throw new Error("Nenhum produto foi encontrado nas linhas esperadas.");
+            }
+
+            loading.style.display = 'none';
+
+            document.getElementById('uploadContainer').style.display = 'none';
+            document.getElementById('statusBar').style.display = 'block';
+
+            searchInput.disabled = false;
+            searchInput.value = "";
+
+            renderTable("");
+
+        } catch (err) {
+
+            console.error("Erro ao processar planilha:", err);
+
+            loading.style.display = 'none';
+
+            error.innerText =
+                "Erro ao carregar a planilha: " + err.message;
+
+            error.style.display = 'block';
+        }
+    };
+
+    reader.onerror = function() {
+
+        loading.style.display = 'none';
+
+        error.innerText =
+            "Não foi possível ler o arquivo selecionado.";
+
+        error.style.display = 'block';
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+/* EXIBIÇÃO DA TABELA */
+
+function renderTable(filter) {
+
+    tableBody.innerHTML = "";
+
+    let rawTerms = filter
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    let normalizedTerms = rawTerms.map(
+        term => removeAccents(term)
+    );
+
+    let count = 0;
+
+    let fragment = document.createDocumentFragment();
+
+    for (let row of tableData) {
+
+        let match = normalizedTerms.every(
+            term => row.searchStr.includes(term)
+        );
+
+        if (!match) continue;
+
+        let tr = document.createElement('tr');
+
+        visibleColumns.forEach((col, displayIndex) => {
+
+            let td = document.createElement('td');
+
+            let value = row.values[col] ?? "";
+
+            if (displayIndex === 0) td.classList.add('col-a');
+            if (displayIndex === 1) td.classList.add('col-b');
+
+            if ([2, 3].includes(displayIndex)) {
+                td.classList.add('col-texto');
+            }
+
+            if (displayIndex === 3) {
+                td.classList.add('col-e');
+            }
+
+            if (displayIndex >= 4) {
+                td.classList.add('col-t');
+            }
+
+            td.innerHTML = highlightText(value, rawTerms);
+
+            tr.appendChild(td);
+        });
+
+        fragment.appendChild(tr);
+
+        count++;
+    }
+
+    if (count === 0) {
+
+        let tr = document.createElement('tr');
+        let td = document.createElement('td');
+
+        td.colSpan = visibleColumns.length;
+
+        td.style.cssText =
+            "text-align:center;color:#d32f2f;padding:20px;";
+
+        td.textContent =
+            "Nenhum resultado encontrado para a sua pesquisa.";
+
+        tr.appendChild(td);
+
+        tableBody.appendChild(tr);
+
+    } else {
+
+        tableBody.appendChild(fragment);
+
+    }
+
+    document.getElementById('resultCount').innerText =
+        `Registros exibidos: ${count} de ${tableData.length}`;
+}
+
+/* PESQUISA */
+
+searchInput.addEventListener('input', function(e) {
+    renderTable(e.target.value);
+});
+
+/* SELEÇÃO DE LINHAS */
+
+tableBody.addEventListener('click', function(e) {
+
+    let tr = e.target.closest('tr');
+
+    if (!tr || tr.querySelector('td[colspan]')) {
+        return;
+    }
+
+    let allRows = this.querySelectorAll('tr');
+
+    allRows.forEach(row => {
+        if (row !== tr) {
+            row.classList.remove('selected-row');
+        }
+    });
+
+    tr.classList.toggle('selected-row');
+});
+
+</script>
+
+</body>
+</html>
