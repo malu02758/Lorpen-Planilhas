@@ -761,7 +761,7 @@ excelFile.addEventListener('change', function(e) {
                         value = convertDate(value);
                     }
 
-                   
+                   values[col] = formatCellValue(value, displayIndex);
 
                     if (String(value).trim() !== "") {
                         searchable.push(String(value).trim());
