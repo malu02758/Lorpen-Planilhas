@@ -201,7 +201,19 @@ th {
     text-align: left;
     white-space: normal;
     min-width: 140px;
-    overflow-wrap: break-word;
+    overflow-wrap: break-word; 
+}
+
+/* CÓDIGO ORIGINAL */
+
+.col-c {
+    width: 260px;
+    min-width: 220px;
+    max-width: 300px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.4;
 }
 
 /* DESCRIÇÃO DO PRODUTO */
@@ -279,8 +291,13 @@ tr.selected-row:hover {
 @media (max-width: 600px) {
     .header-container {
         padding: 10px;
+   
     }
-
+    .col-c {
+        width: 200px;
+        min-width: 180px;
+        max-width: 220px;
+    }
     .title-main {
         font-size: 17px;
     }
@@ -501,20 +518,27 @@ function getHeader(row, col) {
 }
 
 /* FORMATAÇÃO DOS VALORES */
-
-function formatCellValue(value, colIdx) {
+function formatCellValue(value, displayIndex) {
 
     if (value === undefined || value === null || value === "") {
         return "";
     }
 
     if (typeof value === "number") {
+
+        // Colunas de preço (35% a 70%): sempre 2 casas decimais
+        if (displayIndex >= 4) {
+            return value.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
         return value.toLocaleString('pt-BR');
     }
 
     return String(value).trim();
 }
-
 /* DATAS */
 
 function convertDate(value) {
@@ -706,6 +730,7 @@ excelFile.addEventListener('change', function(e) {
 
                 if (displayIndex === 0) th.classList.add('col-a');
                 if (displayIndex === 1) th.classList.add('col-b');
+                if (displayIndex === 2) th.classList.add('col-c');
                 if (displayIndex === 3) th.classList.add('col-e');
                 if (displayIndex >= 4) th.classList.add('col-t');
 
@@ -736,7 +761,7 @@ excelFile.addEventListener('change', function(e) {
                         value = convertDate(value);
                     }
 
-                    values[col] = formatCellValue(value, col);
+                   
 
                     if (String(value).trim() !== "") {
                         searchable.push(String(value).trim());
@@ -832,6 +857,7 @@ function renderTable(filter) {
 
             if (displayIndex === 0) td.classList.add('col-a');
             if (displayIndex === 1) td.classList.add('col-b');
+            if (displayIndex === 2) td.classList.add('col-c');
 
             if ([2, 3].includes(displayIndex)) {
                 td.classList.add('col-texto');
