@@ -201,7 +201,7 @@ th {
     text-align: left;
     white-space: normal;
     min-width: 140px;
-    overflow-wrap: break-word; 
+    overflow-wrap: break-word;
 }
 
 /* CÓDIGO ORIGINAL */
@@ -291,13 +291,8 @@ tr.selected-row:hover {
 @media (max-width: 600px) {
     .header-container {
         padding: 10px;
-   
     }
-    .col-c {
-        width: 200px;
-        min-width: 180px;
-        max-width: 220px;
-    }
+
     .title-main {
         font-size: 17px;
     }
@@ -323,6 +318,12 @@ tr.selected-row:hover {
     th, td {
         font-size: 12px;
         padding: 9px 8px;
+    }
+
+    .col-c {
+        width: 200px;
+        min-width: 180px;
+        max-width: 220px;
     }
 
     .col-e {
@@ -518,6 +519,7 @@ function getHeader(row, col) {
 }
 
 /* FORMATAÇÃO DOS VALORES */
+
 function formatCellValue(value, displayIndex) {
 
     if (value === undefined || value === null || value === "") {
@@ -539,6 +541,7 @@ function formatCellValue(value, displayIndex) {
 
     return String(value).trim();
 }
+
 /* DATAS */
 
 function convertDate(value) {
@@ -761,7 +764,7 @@ excelFile.addEventListener('change', function(e) {
                         value = convertDate(value);
                     }
 
-                   values[col] = formatCellValue(value, displayIndex);
+                    values[col] = formatCellValue(value, displayIndex);
 
                     if (String(value).trim() !== "") {
                         searchable.push(String(value).trim());
