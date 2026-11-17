@@ -415,6 +415,7 @@ const REQUIRED_COLUMNS = [
     { label: "Código",             match: h => h === "CODIGO" || h === "COD" },
     { label: "Código Original",    match: h => h.includes("CODIGO") && h.includes("ORIGINAL") },
     { label: "Descrição do Produto", match: h => h.includes("DESCRICAO") },
+    { label: " Preço Sugerido de Venda", match: h => h.includes("PRECO")   },
     { label: "35%", match: h => h === "35" },
     { label: "40%", match: h => h === "40" },
     { label: "45%", match: h => h === "45" },
